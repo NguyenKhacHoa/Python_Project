@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký - Code Reviewer</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Login_Register.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <div class="left-section">
+            <div class="brand-overlay">
+                <div class="brand-content">
+                    <i class="fa-brands fa-connectdevelop brand-icon"></i>
+                    <h1>Tham gia cùng<br>đội ngũ Developer</h1>
+                    <p>Nâng cao chất lượng code của team bạn ngay hôm nay với sự trợ giúp của AI.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <div class="form-login">
+                <h2>Tạo tài khoản mới 🚀</h2>
+                <p class="text">Điền thông tin bên dưới để đăng ký.</p>
+
+                {% if msg %}
+                <div style="background-color: #fee2e2; color: #dc2626; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ msg }}</span>
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('register') }}" method="post">
+
+                    <div class="input-box">
+                        <label>Tên đăng nhập</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-user icon"></i>
+                            <input type="text" name="username" placeholder="Chọn username..." required>
+                        </div>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Email</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-envelope icon"></i>
+                             <input type="email" name="email" placeholder="name@company.com" required>
+                        </div>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Mật khẩu</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-lock icon"></i>
+                             <input type="password" name="password" placeholder="Tạo mật khẩu mạnh" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Đăng Ký Tài Khoản</button>
+                </form>
+
+                <div class="bottom-content">
+                    Đã có tài khoản? <a href="{{ url_for('login') }}">Đăng Nhập</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

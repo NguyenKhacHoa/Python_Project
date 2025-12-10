@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Reviewer - Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+    <style>
+        /* CSS nội bộ giữ nguyên cho bảng lịch sử */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        .history-table th { text-align: left; padding: 10px; color: #6b7280; font-weight: 500; border-bottom: 1px solid #e5e7eb; }
+        .history-table td { padding: 12px 10px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+        .history-table tr:last-child td { border-bottom: none; }
+        .score-badge { padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+        .score-good { background: #d1fae5; color: #059669; }
+        .score-bad { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon"><i class="fa-brands fa-connectdevelop"></i></div>
+                <span>Code Reviewer</span>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="menu-label">MENU</div>
+                <a href="#" class="nav-item active">
+                    <i class="fa-solid fa-code"></i>Phân Tích Code
+                </a>
+
+                {% if role == 'admin' %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="nav-item" style="color: #e67e22;">
+                    <i class="fa-solid fa-users-gear"></i>Quản Lý Users
+                    </a>
+                {% endif %}
+
+                <a href="{{ url_for('history_page') }}" class="nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>Lịch Sử Review
+                </a>
+                <a href="{{ url_for('settings') }}" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>Cài Đặt
+                </a>
+            </nav>
+
+            <div class="user-panel">
+                <div class="avatar">{{ username[0]|upper }}</div>
+                <div class="info">
+                    <strong>{{ username }}</strong>
+                    <span>{{ role|upper }}</span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h2>Xin chào, {{ username }}! 👋</h2>
+                    <p class="text">Sử dụng AI để phát hiện lỗi bảo mật, rủi ro và đề xuất code tối ưu.</p>
+                </div>
+                <div class="actions">
+                    <input type="file" id="file-upload" style="display: none;" accept=".py,.js,.java,.cpp,.c,.txt,.html,.css">
+
+                    <label for="file-upload" class="btn-second" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-upload"></i> Tải File Lên
+                    </label>
+
+                    <button class="btn-second" onclick="clearCode()">
+                        <i class="fa-solid fa-eraser"></i> Xóa
+                    </button>
+
+                    <button class="btn-primary" onclick="analyzeCode()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Chạy Phân Tích
+                    </button>
+                </div>
+            </header>
+
+            <div class="stat-container">
+                <div class="stat-card">
+                   <div class="icon-box purple"><i class="fa-solid fa-bug"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-bugs">0</h3>
+                        <span>Rủi ro tiềm ẩn</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box green"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-score">--</h3>
+                        <span>Điểm chất lượng</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box red"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-security">0</h3>
+                        <span>Lỗ hổng bảo mật</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace">
+                <div class="panel code-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">
+                            <i class="fa-solid fa-file-code"></i> Source Code Input
+                        </span>
+                        <span class="badge">Python</span>
+                    </div>
+                    <textarea id="code-input" placeholder="# Dán đoạn code PR của Junior vào đây để review..."></textarea>
+                </div>
+
+                <div class="panel result-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">
+                            <i class="fa-solid fa-robot"></i> Kết quả từ AI
+                        </span>
+                        <span id="status-text" class="status-waiting">Sẵn sàng</span>
+                    </div>
+                    <div class="output-body" id="output-container">
+                        <div id="view-empty" class="view-state">
+                            <div class="empty-img"><i class="fa-solid fa-code-branch"></i></div>
+                            <p>Chưa có dữ liệu</p>
+                            <span style="font-size:13px; color:#9ca3af">Vui lòng nhập code hoặc upload file</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="history-section" class="panel" style="margin-top: 24px; height: auto;">
+                <div class="panel-head">
+                    <span class="panel-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử Review Gần Đây
+                    </span>
+                </div>
+                <div style="padding: 0 20px 20px 20px;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Điểm số</th>
+                                <th>Tóm tắt từ AI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in history %}
+                            <tr>
+                                <td>{{ item.created_at }}</td>
+                                <td>
+                                    <span class="score-badge {{ 'score-good' if item.score >= 80 else 'score-bad' }}">
+                                        {{ item.score }}/100
+                                    </span>
+                                </td>
+                                <td>{{ item.ai_summary }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align:center; color:#9ca3af; padding: 20px;">
+                                    Chưa có lịch sử review nào.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+/* --- RESET & BASIC SETUP --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif; /* Đồng bộ font với trang chủ */
+}
+
+body {
+    height: 100vh;
+    width: 100%;
+    background: #fff;
+    overflow: hidden; /* Tránh thanh cuộn thừa */
+}
+
+.main-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+/* --- LEFT SECTION (Banner quảng cáo/Logo) --- */
+.left-section {
+    width: 60%;
+    /* Gradient màu xanh tím hiện đại */
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    position: relative;
+    display: flex;
+    align-items: flex-end; /* Đẩy nội dung xuống dưới */
+    padding: 80px;
+}
+
+.brand-overlay {
+    width: 100%;
+    color: white;
+    z-index: 2;
+}
+
+.brand-icon {
+    font-size: 48px;
+    margin-bottom: 24px;
+    color: #67e8f9; /* Màu cyan sáng để nổi bật trên nền tím */
+    display: inline-block;
+}
+
+.brand-content h1 {
+    font-size: 42px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.brand-content p {
+    font-size: 18px;
+    line-height: 1.6;
+    opacity: 0.9;
+    max-width: 500px;
+    font-weight: 400;
+}
+
+/* Hiệu ứng trang trí nền (Opsional) */
+.left-section::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 1;
+}
+
+/* --- RIGHT SECTION (Form đăng nhập/đăng ký) --- */
+.right-section {
+    width: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background-color: white;
+}
+
+.form-login {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+h2 {
+    color: #111827; /* Màu đen xám đậm */
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.text {
+    color: #6b7280; /* Màu xám trung tính */
+    margin-bottom: 32px;
+    font-size: 15px;
+}
+
+/* Input Fields */
+.input-box {
+    margin-bottom: 20px;
+}
+
+.input-box label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.input-wrap input {
+    width: 100%;
+    padding: 12px 16px 12px 42px; /* Padding trái lớn để chứa icon */
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+    color: #1f2937;
+    background-color: #fff;
+}
+
+.input-wrap input:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); /* Hiệu ứng focus ring */
+}
+
+.input-wrap .icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 16px;
+    pointer-events: none; /* Icon không chặn click vào input */
+}
+
+/* Actions (Remember me, Forgot password) */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.actions label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b5563;
+    cursor: pointer;
+    user-select: none;
+}
+
+.actions input[type="checkbox"] {
+    accent-color: #4f46e5;
+    width: 16px;
+    height: 16px;
+}
+
+.actions a {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.actions a:hover {
+    text-decoration: underline;
+    color: #4338ca;
+}
+
+/* Submit Button */
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.btn-submit:hover {
+    background-color: #4338ca;
+    transform: translateY(-1px);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* Bottom Link (Chuyển trang) */
+.bottom-content {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.bottom-content a {
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.bottom-content a:hover {
+    text-decoration: underline;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 900px) {
+    /* Ẩn phần banner bên trái trên màn hình nhỏ/tablet dọc */
+    .left-section {
+        display: none;
+    }
+    .right-section {
+        width: 100%;
+        padding: 20px;
+    }
+    .form-login {
+        max-width: 100%;
+    }
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt - Code Reviewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <style>
+        .settings-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e5e7eb; margin-bottom: 20px; }
+        .settings-title { font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #374151; font-size: 14px; }
+        .form-input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; }
+        .form-input:focus { border-color: #4f46e5; }
+        .btn-save { background: #4f46e5; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; }
+        .btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-danger:hover { background: #fecaca; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .alert-success { background: #ecfdf5; color: #059669; }
+        .alert-error { background: #fef2f2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="brand"><div class="logo-icon"><i class="fa-brands fa-connectdevelop"></i></div><span>Code Reviewer</span></div>
+            <nav class="nav-menu">
+                <div class="menu-label">MENU</div>
+                <a href="{{ url_for('home') }}" class="nav-item"><i class="fa-solid fa-code"></i>Phân Tích Code</a>
+                <a href="{{ url_for('history_page') }}" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i>Lịch Sử Review</a>
+                <a href="{{ url_for('settings') }}" class="nav-item active"><i class="fa-solid fa-gear"></i>Cài Đặt</a>
+            </nav>
+            <div class="user-panel">
+                <div class="avatar">{{ username[0]|upper }}</div>
+                <div class="info"><strong>{{ username }}</strong><span>{{ role|upper }}</span></div>
+                <a href="{{ url_for('logout') }}" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div><h2>Cài đặt hệ thống ⚙️</h2><p class="text">Quản lý tài khoản và dữ liệu cá nhân.</p></div>
+            </header>
+
+            {% if request.args.get('msg') == 'pass_ok' %}
+            <div class="alert alert-success"><i class="fa-solid fa-check-circle"></i> Đổi mật khẩu thành công!</div>
+            {% elif request.args.get('msg') == 'pass_fail' %}
+            <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i> Mật khẩu hiện tại không đúng.</div>
+            {% elif request.args.get('msg') == 'history_cleared' %}
+            <div class="alert alert-success"><i class="fa-solid fa-trash-can"></i> Đã xóa toàn bộ lịch sử review.</div>
+            {% endif %}
+
+            <div class="settings-card">
+                <div class="settings-title"><i class="fa-solid fa-lock"></i> Đổi mật khẩu</div>
+                <form action="{{ url_for('change_password') }}" method="post">
+                    <div class="form-group">
+                        <label>Mật khẩu hiện tại</label>
+                        <input type="password" name="current_password" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" name="new_password" class="form-input" required>
+                    </div>
+                    <button type="submit" class="btn-save">Lưu thay đổi</button>
+                </form>
+            </div>
+
+            <div class="settings-card" style="border-color: #fee2e2;">
+                <div class="settings-title" style="color: #dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Vùng nguy hiểm</div>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Xóa toàn bộ lịch sử phân tích code. Hành động này không thể hoàn tác.</p>
+
+                <form action="{{ url_for('clear_history') }}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử không?');">
+                    <button type="submit" class="btn-danger"><i class="fa-solid fa-trash"></i> Xóa lịch sử review</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập - Code Reviewer</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Login_Register.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <div class="left-section">
+            <div class="brand-overlay">
+                <div class="brand-content">
+                    <i class="fa-brands fa-connectdevelop brand-icon"></i>
+                    <h1>Automated<br>Code Review</h1>
+                    <p>Hệ thống tự động phát hiện lỗi, tối ưu hiệu suất và bảo mật code sử dụng trí tuệ nhân tạo (AI).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <div class="form-login">
+                <h2>Xin chào! 👋</h2>
+                <p class="text">Đăng nhập để bắt đầu phiên làm việc.</p>
+
+                {% if msg %}
+                <div style="background-color: #fee2e2; color: #dc2626; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ msg }}</span>
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('login') }}" method="post">
+                    <div class="input-box">
+                        <label>Tên đăng nhập</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-user icon"></i>
+                            <input type="text" name="username" placeholder="Ví dụ: teamlead_01" required>
+                        </div>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Mật khẩu</label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-lock icon"></i>
+                             <input type="password" name="password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <label>
+                            <input type="checkbox"> Ghi nhớ tôi
+                        </label>
+                        <a href="{{ url_for('forgot_password') }}">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Đăng Nhập</button>
+                </form>
+
+                <div class="bottom-content">
+                    Chưa có tài khoản? <a href="{{ url_for('register') }}">Đăng Ký ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

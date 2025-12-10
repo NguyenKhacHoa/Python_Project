@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Code Reviewer</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Link CSS Chung (Layout, Sidebar) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <!-- Link CSS Riêng cho Admin -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon"><i class="fa-brands fa-connectdevelop"></i></div>
+                <span>Code Reviewer</span>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="menu-label">MENU</div>
+                <a href="{{ url_for('home') }}" class="nav-item">
+                    <i class="fa-solid fa-code"></i>Phân Tích Code
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-item active">
+                    <i class="fa-solid fa-users-gear"></i>Quản Lý Users
+                </a>
+                <a href="{{ url_for('history_page') }}" class="nav-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>Lịch Sử Review
+                </a>
+                <a href="{{ url_for('settings') }}" class="nav-item">
+                    <i class="fa-solid fa-gear"></i>Cài Đặt
+                </a>
+            </nav>
+
+            <div class="user-panel">
+                <div class="avatar">{{ username[0]|upper }}</div>
+                <div class="info">
+                    <strong>{{ username }}</strong>
+                    <span>{{ role|upper }}</span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn-logout" title="Đăng xuất">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Header & Search -->
+            <header class="admin-header">
+                <div>
+                    <h2>Quản trị hệ thống 🛡️</h2>
+                    <p class="text">Tổng quan hoạt động và quản lý thành viên.</p>
+                </div>
+
+                <!-- Thanh tìm kiếm -->
+                <form action="{{ url_for('admin_dashboard') }}" method="GET" class="search-box">
+                    <input type="text" name="q" placeholder="Tìm tên hoặc email..." value="{{ search_query or '' }}" autocomplete="off">
+                    <button type="submit" title="Tìm kiếm"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="stat-container">
+                <div class="stat-card">
+                   <div class="icon-box purple"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_users }}</h3>
+                        <span>Thành viên</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box green"><i class="fa-solid fa-file-code"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total_reviews }}</h3>
+                        <span>Lượt Review</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ stats.high_risk }}</h3>
+                        <span>Review rủi ro</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User List Panel -->
+            <div class="panel">
+                <div class="panel-head">
+                    <span class="panel-title">
+                        <i class="fa-solid fa-users-rectangle"></i> Danh Sách Tài Khoản
+                    </span>
+                    <span class="badge">{{ users|length }} kết quả</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Thông tin thành viên</th>
+                                <th>Vai trò</th>
+                                <th>Hoạt động</th>
+                                <th style="text-align: right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td style="color: #6b7280;">#{{ user.user_id }}</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="u-avatar">{{ user.username[0]|upper }}</div>
+                                        <div class="u-info">
+                                            <span class="u-name">{{ user.username }}</span>
+                                            <span class="u-email">{{ user.email }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if user.role == 'admin' %}
+                                        <span class="role-badge role-admin">Admin</span>
+                                    {% else %}
+                                        <span class="role-badge role-user">Member</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500;">{{ user.review_count }} bài review</div>
+                                    {% if user.last_active %}
+                                        <div style="font-size: 12px; color: #9ca3af;">
+                                            <i class="fa-regular fa-clock"></i> {{ user.last_active }}
+                                        </div>
+                                    {% else %}
+                                        <div style="font-size: 12px; color: #9ca3af;">Chưa hoạt động</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <!-- Không cho phép thao tác chính mình (trừ xem lịch sử) -->
+                                        {% if user.user_id != session['id'] %}
+                                            <!-- 1. Xem Lịch Sử -->
+                                            <a href="{{ url_for('admin_view_history', user_id=user.user_id) }}" class="btn-icon btn-view" title="Xem lịch sử hoạt động">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </a>
+
+                                            <!-- 2. Đổi Quyền -->
+                                            <form action="{{ url_for('admin_toggle_role', user_id=user.user_id) }}" method="POST">
+                                                <button type="submit" class="btn-icon btn-role" title="Đổi quyền Admin/Member" onclick="return confirm('Bạn có chắc muốn thay đổi quyền của {{ user.username }}?')">
+                                                    <i class="fa-solid fa-user-shield"></i>
+                                                </button>
+                                            </form>
+
+                                            <!-- 3. Reset Mật Khẩu -->
+                                            <form action="{{ url_for('admin_reset_pass', user_id=user.user_id) }}" method="POST">
+                                                <button type="submit" class="btn-icon btn-reset" title="Reset mật khẩu về 123456" onclick="return confirm('Reset mật khẩu của {{ user.username }} về 123456?')">
+                                                    <i class="fa-solid fa-key"></i>
+                                                </button>
+                                            </form>
+
+                                            <!-- 4. Xóa User -->
+                                            <form action="{{ url_for('admin_delete_user', user_id=user.user_id) }}" method="POST">
+                                                <button type="submit" class="btn-icon btn-delete" title="Xóa tài khoản vĩnh viễn" onclick="return confirm('CẢNH BÁO: Hành động này sẽ xóa vĩnh viễn {{ user.username }} và toàn bộ dữ liệu!')">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span style="font-size: 13px; color: #9ca3af; font-style: italic; padding-right: 10px;">(Tài khoản của bạn)</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-search">
+                                        <i class="fa-solid fa-magnifying-glass-minus"></i>
+                                        <p>Không tìm thấy người dùng nào phù hợp với từ khóa "{{ search_query }}"</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification Container -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div id="toast-container">
+            {% for category, message in messages %}
+                <div class="toast toast-{{ category }}">
+                    {% if category == 'success' %}
+                        <i class="fa-solid fa-circle-check"></i>
+                    {% elif category == 'error' %}
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-info"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Auto hide toast after 3.5s -->
+        <script>
+            setTimeout(() => {
+                const toasts = document.getElementById('toast-container');
+                if (toasts) {
+                    toasts.style.transition = 'opacity 0.5s ease';
+                    toasts.style.opacity = '0';
+                    setTimeout(() => toasts.remove(), 500);
+                }
+            }, 3500);
+        </script>
+      {% endif %}
+    {% endwith %}
+</body>
+</html>

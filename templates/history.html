@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Review - AI Code Reviewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --bg-color: #f3f4f6;
+            --sidebar-width: 260px;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-color); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            flex-shrink: 0;
+        }
+        .brand { font-size: 20px; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+        .nav-menu { flex: 1; }
+        .menu-label { font-size: 12px; color: #9ca3af; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 15px; color: var(--text-gray);
+            text-decoration: none; border-radius: 8px; margin-bottom: 5px;
+            transition: all 0.2s; font-weight: 500;
+        }
+        .nav-item:hover, .nav-item.active { background: #eef2ff; color: var(--primary-color); }
+        .user-panel { border-top: 1px solid #e5e7eb; padding-top: 20px; display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 36px; height: 36px; background: #e0e7ff; color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .info { flex: 1; display: flex; flex-direction: column; font-size: 13px; }
+        .btn-logout { color: #ef4444; text-decoration: none; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .page-header { margin-bottom: 25px; }
+        .page-header h2 { font-size: 24px; color: var(--text-dark); margin-bottom: 5px; }
+        .page-header .text { color: var(--text-gray); font-size: 14px; }
+
+        /* --- TABLE STYLES (ĐÃ FIX LỖI) --- */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            overflow: hidden; /* Bo tròn góc bảng */
+        }
+
+        .full-table { width: 100%; border-collapse: collapse; }
+
+        .full-table th {
+            background: #f9fafb;
+            text-align: left;
+            padding: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            border-bottom: 1px solid #e5e7eb;
+            text-transform: uppercase;
+        }
+
+        .full-table td {
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        .full-table tr:hover { background-color: #fbfbfb; }
+
+        /* Cột Summary: Giới hạn độ dài text */
+        .col-summary { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4b5563; }
+
+        /* Badges */
+        .score-badge {
+            padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            display: inline-block; min-width: 60px; text-align: center;
+        }
+        .score-high { background: #d1fae5; color: #059669; }
+        .score-mid { background: #fef3c7; color: #d97706; }
+        .score-low { background: #fee2e2; color: #dc2626; }
+
+        /* --- FIX QUAN TRỌNG: NHÓM NÚT BẤM --- */
+        .action-group {
+            display: flex;
+            gap: 8px; /* Khoảng cách giữa các nút */
+            justify-content: flex-start;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap; /* Không xuống dòng chữ trong nút */
+        }
+
+        /* Nút Xem Chi Tiết */
+        .btn-view { background: #eef2ff; color: #4f46e5; border-color: #e0e7ff; }
+        .btn-view:hover { background: #4f46e5; color: white; }
+
+        /* Nút PDF */
+        .btn-pdf { background: #fef2f2; color: #ef4444; border-color: #fee2e2; }
+        .btn-pdf:hover { background: #ef4444; color: white; }
+
+        /* Nút HTML */
+        .btn-html { background: #eff6ff; color: #2563eb; border-color: #dbeafe; }
+        .btn-html:hover { background: #2563eb; color: white; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-box {
+            background: white; width: 90%; max-width: 800px;
+            height: 85vh; border-radius: 12px; display: flex; flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        .modal-header { padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; }
+        .btn-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+        .modal-body { flex: 1; overflow-y: auto; padding: 20px; background: #f9fafb; }
+
+        .code-block {
+            background: #1f2937; color: #f3f4f6; padding: 15px; border-radius: 8px;
+            font-family: 'Consolas', monospace; font-size: 13px; white-space: pre-wrap;
+            max-height: 300px; overflow-y: auto; margin-top: 10px;
+        }
+        .risk-item { background: #fff1f2; padding: 10px; border-left: 4px solid #f43f5e; margin-bottom: 8px; font-size: 14px; color: #881337; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo-icon"><i class="fa-brands fa-connectdevelop"></i></div>
+            <span>Code Reviewer</span>
+        </div>
+        <nav class="nav-menu">
+            <div class="menu-label">MENU</div>
+            <a href="{{ url_for('home') }}" class="nav-item">
+                <i class="fa-solid fa-code"></i>Phân Tích Code
+            </a>
+            {% if role == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-item" style="color: #e67e22;">
+                <i class="fa-solid fa-users-gear"></i>Quản Lý Users
+                </a>
+            {% endif %}
+            <a href="{{ url_for('history_page') }}" class="nav-item active">
+                <i class="fa-solid fa-clock-rotate-left"></i>Lịch Sử Review
+            </a>
+            <a href="{{ url_for('settings') }}" class="nav-item">
+                <i class="fa-solid fa-gear"></i>Cài Đặt
+            </a>
+        </nav>
+        <div class="user-panel">
+            <div class="avatar">{{ username[0]|upper }}</div>
+            <div class="info"><strong>{{ username }}</strong><span>{{ role|upper }}</span></div>
+            <a href="{{ url_for('logout') }}" class="btn-logout" title="Đăng xuất"><i class="fa-solid fa-right-from-bracket"></i></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2>🗂️ Kho lưu trữ Review</h2>
+            <span class="text">Xem lại và tải xuống các báo cáo đã phân tích trước đây.</span>
+        </div>
+
+        <div class="table-container">
+            <table class="full-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">ID</th>
+                        <th style="width: 15%;">Thời gian</th>
+                        <th style="width: 12%; text-align: center;">Điểm</th>
+                        <th style="width: 30%;">Tóm tắt</th>
+                        <th style="width: 15%; text-align: center;">Bảo mật</th>
+                        <th style="width: 20%;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in reviews %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--primary-color);">#{{ item.review_id }}</td>
+                        <td style="font-size: 13px; color: var(--text-gray);">{{ item.created_at }}</td>
+                        <td style="text-align: center;">
+                            {% if item.score >= 80 %}
+                                <span class="score-badge score-high">{{ item.score }}/100</span>
+                            {% elif item.score >= 50 %}
+                                <span class="score-badge score-mid">{{ item.score }}/100</span>
+                            {% else %}
+                                <span class="score-badge score-low">{{ item.score }}/100</span>
+                            {% endif %}
+                        </td>
+                        <td class="col-summary" title="{{ item.ai_summary }}">
+                            {{ item.ai_summary }}
+                        </td>
+                        <td style="text-align: center;">
+                            {% if item.security_issues > 0 %}
+                                <span style="color: #dc2626; font-weight: 700; font-size: 13px;">
+                                    <i class="fa-solid fa-shield-halved"></i> {{ item.security_issues }} lỗi
+                                </span>
+                            {% else %}
+                                <span style="color: #059669; font-weight: 600; font-size: 13px;">
+                                    <i class="fa-solid fa-check-circle"></i> An toàn
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                <button class="btn-action btn-view" onclick="openReview('{{ item.review_id }}')">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+
+                                <a href="/api/history/export/pdf/{{ item.review_id }}" class="btn-action btn-pdf" title="Tải PDF">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </a>
+
+                                <a href="/api/history/export/html/{{ item.review_id }}" class="btn-action btn-html" title="Tải HTML">
+                                    <i class="fa-solid fa-file-code"></i> HTML
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 50px;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="60" style="opacity: 0.5; margin-bottom: 10px;">
+                            <p style="color: #9ca3af;">Bạn chưa có lịch sử review nào.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span style="background: #eef2ff; color: #4f46e5; padding: 5px 10px; border-radius: 6px; margin-right: 10px; font-size: 14px;">
+                        #<span id="modal-id"></span>
+                    </span>
+                    Chi tiết Review
+                </div>
+                <button class="btn-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fa-brands fa-python"></i> Source Code</h4>
+                    <div id="modal-input" class="code-block"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                    <div style="background: white; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px; color: #4f46e5;"><i class="fa-solid fa-robot"></i> Đánh giá AI</h4>
+                        <p id="modal-summary" style="margin-bottom: 15px; color: #374151; line-height: 1.5;"></p>
+
+                        <h5 style="margin-bottom: 10px; font-size: 14px; text-transform: uppercase; color: #6b7280;">Danh sách vấn đề:</h5>
+                        <div id="modal-risks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('detailModal');
+
+        async function openReview(id) {
+            modal.classList.add('active');
+
+            // Set trạng thái loading
+            document.getElementById('modal-id').innerText = id;
+            document.getElementById('modal-input').innerText = "Đang tải dữ liệu từ server...";
+            document.getElementById('modal-summary').innerText = "";
+            document.getElementById('modal-risks').innerHTML = "";
+
+            try {
+                const response = await fetch(`/api/review/${id}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    alert("Lỗi: " + data.error);
+                    return;
+                }
+
+                document.getElementById('modal-input').innerText = data.input_code;
+                document.getElementById('modal-summary').innerText = data.ai_summary;
+
+                const risksDiv = document.getElementById('modal-risks');
+                if (data.risks_detail && data.risks_detail.length > 0) {
+                    let html = '';
+                    data.risks_detail.forEach(risk => {
+                        // Xử lý nếu risk là string hoặc object
+                        let msg = (typeof risk === 'object') ? risk.msg : risk;
+                        let cat = (typeof risk === 'object') ? (risk.category || 'Warning') : 'Lỗi';
+
+                        html += `<div class="risk-item">
+                                    <strong>[${cat}]</strong> ${msg}
+                                 </div>`;
+                    });
+                    risksDiv.innerHTML = html;
+                } else {
+                    risksDiv.innerHTML = '<div style="color: #059669; padding: 10px; background: #ecfdf5; border-radius: 6px;"><i class="fa-solid fa-check-circle"></i> Tuyệt vời! Code không có lỗi nghiêm trọng.</div>';
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('modal-input').innerText = "Không thể kết nối đến Server.";
+            }
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal();
+        });
+    </script>
+</body>
+</html>

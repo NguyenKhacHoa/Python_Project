@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch sử User - Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Link CSS Chung -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <!-- QUAN TRỌNG: Link thêm admin.css để dùng class .role-admin/.role-user -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+    <style>
+        /* CSS nội bộ nhỏ cho trang này */
+        .score-badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 12px; }
+        .score-good { background: #d1fae5; color: #047857; }
+        .score-bad { background: #fee2e2; color: #b91c1c; }
+    </style>
+</head>
+<body style="background: #f3f4f6;">
+    <div style="max-width: 1000px; margin: 30px auto; padding: 0 20px;">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <div>
+                <a href="{{ url_for('admin_dashboard') }}" style="text-decoration:none; color:#6b7280; font-size:14px; display:flex; align-items:center; gap:5px; margin-bottom:10px; transition: color 0.2s;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
+                </a>
+                <h2 style="color:#1f2937; margin: 0;">Hồ sơ User: <span style="color:#4f46e5;">{{ target_user.username }}</span></h2>
+
+                <div style="color:#4b5563; font-size:14px; margin-top: 5px; display: flex; align-items: center; gap: 8px;">
+                    <span>Email: {{ target_user.email }}</span>
+                    <span>|</span>
+                    <span>Role:</span>
+                    <!-- [ĐÃ SỬA] Sử dụng class thay vì style inline để tránh lỗi đỏ -->
+                    <span class="role-badge {{ 'role-admin' if target_user.role == 'admin' else 'role-user' }}">
+                        {{ target_user.role }}
+                    </span>
+                </div>
+            </div>
+
+            <div style="text-align:right;">
+                <div style="background:white; padding:15px 25px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                    <div style="font-size:12px; color:#6b7280; font-weight: 600; text-transform: uppercase;">Tổng số bài Review</div>
+                    <div style="font-size:24px; font-weight:800; color:#4f46e5;">{{ reviews|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="panel">
+            <div class="panel-head">
+                <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử phân tích code</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="history-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Thời gian</th>
+                            <th>Điểm số</th>
+                            <th>Tóm tắt nội dung</th>
+                            <th style="text-align: center;">Rủi ro bảo mật</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reviews %}
+                        <tr>
+                            <td style="font-weight: 600; color: #6b7280;">#{{ item.review_id }}</td>
+                            <td style="font-size: 13px;">{{ item.created_at }}</td>
+                            <td>
+                                <span class="score-badge {{ 'score-good' if item.score >= 80 else 'score-bad' }}">
+                                    {{ item.score }}/100
+                                </span>
+                            </td>
+                            <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color: #374151;">
+                                {{ item.ai_summary }}
+                            </td>
+                            <td style="text-align:center;">
+                                {% if item.security_issues > 0 %}
+                                    <span style="color:#ef4444; font-weight:700; font-size: 13px;">
+                                        <i class="fa-solid fa-bug"></i> {{ item.security_issues }} lỗi
+                                    </span>
+                                {% else %}
+                                    <span style="color:#10b981; font-weight: 600; font-size: 13px;">
+                                        <i class="fa-solid fa-shield-halved"></i> An toàn
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="/api/history/export/html/{{ item.review_id }}" target="_blank" style="display: inline-flex; align-items: center; gap: 5px; background: #f3f4f6; color: #4b5563; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; transition: all 0.2s;">
+                                    <i class="fa-solid fa-up-right-from-square"></i> Xem HTML
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" style="text-align:center; padding:40px; color:#9ca3af;">
+                            <i class="fa-regular fa-folder-open" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                            User này chưa thực hiện bài review nào.
+                        </td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
